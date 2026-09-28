@@ -52,6 +52,20 @@ pipeline {
                         if ($token -notmatch '^dckr_pat_[A-Za-z0-9_-]+$') {
                             throw 'La credencial dockerhub-pat-v2 no contiene un token con el formato esperado.'
                         }
+                        $sha = [Security.Cryptography.SHA256]::Create()
+                        $digest = $sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($token))
+                        $fingerprint = [BitConverter]::ToString($digest).Replace('-', '').Substring(0, 12)
+                        Write-Output "Huella Jenkins: $fingerprint"
+
+                        $basic = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("toan13:$token"))
+                        $authUri = 'https://auth.docker.io/token?service=registry.docker.io&scope=repository:toan13/inventario-productos:pull,push'
+                        try {
+                            $reply = Invoke-WebRequest -UseBasicParsing -Uri $authUri -Headers @{ Authorization = "Basic $basic" } -ErrorAction Stop
+                            Write-Output "Docker Hub autenticacion HTTP: $([int]$reply.StatusCode)"
+                        } catch {
+                            $status = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 'sin respuesta HTTP' }
+                            Write-Output "Docker Hub autenticacion HTTP: $status"
+                        }
                         $token | docker login --username toan13 --password-stdin
                         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                     '''
