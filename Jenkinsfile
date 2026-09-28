@@ -38,6 +38,14 @@ pipeline {
 
         stage('Publicar imagen') {
             steps {
+                powershell '''
+                    Write-Output "Cuenta Windows: $(whoami)"
+                    Write-Output "Docker ejecutable: $((Get-Command docker.exe).Source)"
+                    Write-Output "DOCKER_HOST: $env:DOCKER_HOST"
+                    Write-Output "Contexto Docker: $(docker context show)"
+                    docker version --format 'Cliente={{.Client.Version}} Servidor={{.Server.Version}}'
+                    docker info --format 'Daemon ID={{.ID}} Nombre={{.Name}}'
+                '''
                 withCredentials([string(credentialsId: 'dockerhub-pat-v2', variable: 'DOCKER_TOKEN')]) {
                     powershell '''
                         $token = $env:DOCKER_TOKEN.Trim()
