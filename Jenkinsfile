@@ -38,7 +38,9 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'dockerhub-pat-v2', variable: 'DOCKER_TOKEN')]) {
                     powershell '''
-                        $token = $env:DOCKER_TOKEN
+                        $rawToken = $env:DOCKER_TOKEN
+                        $token = $rawToken.Trim()
+                        Write-Output "Caracteres de espacio quitados: $($rawToken.Length - $token.Length)"
                         if ($token -notmatch '^dckr_pat_[A-Za-z0-9_-]+$') {
                             throw 'La credencial dockerhub-pat-v2 no contiene un token con el formato esperado.'
                         }
@@ -54,7 +56,7 @@ pipeline {
                         $startInfo.RedirectStandardOutput = $true
                         $startInfo.RedirectStandardError = $true
                         $process = [System.Diagnostics.Process]::Start($startInfo)
-                        $process.StandardInput.WriteLine($token)
+                        $process.StandardInput.Write($token)
                         $process.StandardInput.Close()
                         $output = $process.StandardOutput.ReadToEnd()
                         $errorOutput = $process.StandardError.ReadToEnd()
