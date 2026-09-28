@@ -13,6 +13,8 @@ pipeline {
 
     environment {
         IMAGE = 'toan13/inventario-productos'
+        DOCKER_HOST = 'npipe:////./pipe/dockerDesktopLinuxEngine'
+        DOCKER_CONTEXT = ''
     }
 
     stages {
