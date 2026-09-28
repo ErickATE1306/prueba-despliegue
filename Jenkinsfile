@@ -42,6 +42,10 @@ pipeline {
                         if ($token -notmatch '^dckr_pat_[A-Za-z0-9_-]+$') {
                             throw 'La credencial dockerhub-pat no contiene un token con el formato esperado.'
                         }
+                        $sha = [System.Security.Cryptography.SHA256]::Create()
+                        $digest = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($token))
+                        $fingerprint = [System.BitConverter]::ToString($digest).Replace('-', '').Substring(0, 12)
+                        Write-Output "Huella Jenkins: $fingerprint"
                         $startInfo = New-Object System.Diagnostics.ProcessStartInfo
                         $startInfo.FileName = 'docker.exe'
                         $startInfo.Arguments = 'login --username toan13 --password-stdin'
