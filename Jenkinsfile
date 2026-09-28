@@ -36,11 +36,11 @@ pipeline {
 
         stage('Publicar imagen') {
             steps {
-                withCredentials([string(credentialsId: 'dockerhub-pat', variable: 'DOCKER_TOKEN')]) {
+                withCredentials([string(credentialsId: 'dockerhub-pat-v2', variable: 'DOCKER_TOKEN')]) {
                     powershell '''
                         $token = $env:DOCKER_TOKEN
                         if ($token -notmatch '^dckr_pat_[A-Za-z0-9_-]+$') {
-                            throw 'La credencial dockerhub-pat no contiene un token con el formato esperado.'
+                            throw 'La credencial dockerhub-pat-v2 no contiene un token con el formato esperado.'
                         }
                         $sha = [System.Security.Cryptography.SHA256]::Create()
                         $digest = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($token))
