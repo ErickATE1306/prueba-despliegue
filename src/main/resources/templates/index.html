@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inventario | Demo de productos</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">
+        <span class="brand-mark" aria-hidden="true">▦</span>
+        <span>Inventario<span class="brand-accent">.</span></span>
+    </div>
+    <span class="version">Demo · versión 1.0</span>
+</header>
+
+<main class="page">
+    <section class="hero">
+        <div>
+            <p class="eyebrow">PANEL DE PRODUCTOS</p>
+            <h1>Controla tu inventario<br><span>en un solo lugar.</span></h1>
+            <p class="hero-copy">Registra productos, consulta existencias y mantén tu catálogo al día.</p>
+        </div>
+        <div class="hero-decoration" aria-hidden="true"><span>01</span><span>02</span><span>03</span></div>
+    </section>
+
+    <section class="metrics" aria-label="Resumen del inventario">
+        <article class="metric">
+            <span class="metric-icon blue" aria-hidden="true">▦</span>
+            <div><p>Productos</p><strong id="total-productos">—</strong></div>
+        </article>
+        <article class="metric">
+            <span class="metric-icon green" aria-hidden="true">◫</span>
+            <div><p>Unidades en stock</p><strong id="total-unidades">—</strong></div>
+        </article>
+        <article class="metric">
+            <span class="metric-icon amber" aria-hidden="true">!</span>
+            <div><p>Stock bajo</p><strong id="stock-bajo">—</strong></div>
+        </article>
+    </section>
+
+    <div class="content-grid">
+        <section class="panel form-panel" aria-labelledby="form-title">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">GESTIÓN</p>
+                    <h2 id="form-title">Nuevo producto</h2>
+                </div>
+                <span class="panel-symbol" aria-hidden="true">＋</span>
+            </div>
+            <p class="panel-description">Completa los datos para añadir un artículo al catálogo.</p>
+
+            <form id="producto-form">
+                <div class="field">
+                    <label for="codigo">Código</label>
+                    <input id="codigo" name="codigo" type="text" maxlength="20" pattern="[A-Za-z0-9-]+" placeholder="Ej. LAP-005" required>
+                </div>
+                <div class="field">
+                    <label for="nombre">Nombre del producto</label>
+                    <input id="nombre" name="nombre" type="text" maxlength="80" placeholder="Ej. Laptop Pro 14" required>
+                </div>
+                <div class="field">
+                    <label for="categoria">Categoría</label>
+                    <input id="categoria" name="categoria" type="text" maxlength="50" list="categorias" placeholder="Ej. Tecnología" required>
+                    <datalist id="categorias">
+                        <option value="Tecnología"></option>
+                        <option value="Oficina"></option>
+                        <option value="Accesorios"></option>
+                        <option value="Hogar"></option>
+                    </datalist>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="precio">Precio (S/)</label>
+                        <input id="precio" name="precio" type="number" min="0.01" max="999999999.99" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="field">
+                        <label for="stock">Stock</label>
+                        <input id="stock" name="stock" type="number" min="0" step="1" placeholder="0" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button id="guardar-btn" class="button button-primary" type="submit">Guardar producto</button>
+                    <button id="cancelar-btn" class="button button-secondary hidden" type="button">Cancelar edición</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel table-panel" aria-labelledby="catalogo-title">
+            <div class="panel-heading catalog-heading">
+                <div>
+                    <p class="eyebrow">CATÁLOGO</p>
+                    <h2 id="catalogo-title">Productos registrados</h2>
+                </div>
+                <span id="result-count" class="count-badge">0 productos</span>
+            </div>
+            <div class="search-box">
+                <span aria-hidden="true">⌕</span>
+                <input id="buscar" type="search" placeholder="Buscar por nombre, código o categoría" aria-label="Buscar productos">
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody id="productos-body"></tbody>
+                </table>
+            </div>
+            <p id="empty-state" class="empty-state hidden">No se encontraron productos.</p>
+        </section>
+    </div>
+
+    <p class="demo-note">Los datos de esta demostración se guardan en memoria y se reinician al cerrar la aplicación.</p>
+</main>
+
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+</body>
+</html>
