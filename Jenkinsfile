@@ -36,15 +36,11 @@ pipeline {
 
         stage('Publicar imagen') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-inventario',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_TOKEN'
-                )]) {
+                withCredentials([string(credentialsId: 'dockerhub-pat', variable: 'DOCKER_TOKEN')]) {
                     powershell '''
                         $token = $env:DOCKER_TOKEN
-                        if ($env:DOCKER_USER -ne 'toan13' -or $token -notmatch '^dckr_pat_[A-Za-z0-9_-]+$') {
-                            throw 'La credencial dockerhub-inventario no contiene el usuario o el formato de token esperado.'
+                        if ($token -notmatch '^dckr_pat_[A-Za-z0-9_-]+$') {
+                            throw 'La credencial dockerhub-pat no contiene un token con el formato esperado.'
                         }
                         $startInfo = New-Object System.Diagnostics.ProcessStartInfo
                         $startInfo.FileName = 'docker.exe'
