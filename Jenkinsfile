@@ -38,43 +38,36 @@ pipeline {
 
         stage('Publicar imagen') {
             steps {
-                powershell '''
-                    Write-Output "Cuenta Windows: $(whoami)"
-                    Write-Output "Docker ejecutable: $((Get-Command docker.exe).Source)"
-                    Write-Output "DOCKER_HOST: $env:DOCKER_HOST"
-                    Write-Output "Contexto Docker: $(docker context show)"
-                    docker version --format 'Cliente={{.Client.Version}} Servidor={{.Server.Version}}'
-                    docker info --format 'Daemon ID={{.ID}} Nombre={{.Name}}'
-                '''
                 withCredentials([string(credentialsId: 'dockerhub-pat-v2', variable: 'DOCKER_TOKEN')]) {
                     powershell '''
                         $token = $env:DOCKER_TOKEN.Trim()
                         if ($token -notmatch '^dckr_pat_[A-Za-z0-9_-]+$') {
                             throw 'La credencial dockerhub-pat-v2 no contiene un token con el formato esperado.'
                         }
-                        $sha = [Security.Cryptography.SHA256]::Create()
-                        $digest = $sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($token))
-                        $fingerprint = [BitConverter]::ToString($digest).Replace('-', '').Substring(0, 12)
-                        Write-Output "Huella Jenkins: $fingerprint"
-
-                        $basic = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("toan13:$token"))
-                        $authUri = 'https://auth.docker.io/token?service=registry.docker.io&scope=repository:toan13/inventario-productos:pull,push'
-                        try {
-                            $reply = Invoke-WebRequest -UseBasicParsing -Uri $authUri -Headers @{ Authorization = "Basic $basic" } -ErrorAction Stop
-                            Write-Output "Docker Hub autenticacion HTTP: $([int]$reply.StatusCode)"
-                        } catch {
-                            $status = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 'sin respuesta HTTP' }
-                            Write-Output "Docker Hub autenticacion HTTP: $status"
+                        $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
+                        $configDir = [IO.Path]::GetFullPath((Join-Path $tempRoot ('jenkins-docker-' + [guid]::NewGuid().ToString('N'))))
+                        if (-not $configDir.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase)) {
+                            throw 'La carpeta temporal de Docker queda fuera del directorio esperado.'
                         }
-                        $token | docker login --username toan13 --password-stdin
-                        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                        New-Item -ItemType Directory -Path $configDir | Out-Null
+                        $configFile = Join-Path $configDir 'config.json'
+                        $previousConfig = $env:DOCKER_CONFIG
+                        try {
+                            $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("toan13:$token"))
+                            $config = @{ auths = @{ 'https://index.docker.io/v1/' = @{ auth = $auth } } }
+                            $json = $config | ConvertTo-Json -Compress -Depth 4
+                            [IO.File]::WriteAllText($configFile, $json, [Text.UTF8Encoding]::new($false))
+                            $env:DOCKER_CONFIG = $configDir
+                            $imageTag = '{0}:{1}' -f $env:IMAGE, $env:BUILD_NUMBER
+                            & docker.exe push $imageTag
+                            if ($LASTEXITCODE -ne 0) { throw "docker push fallo con codigo $LASTEXITCODE" }
+                        } finally {
+                            $env:DOCKER_CONFIG = $previousConfig
+                            if (Test-Path -LiteralPath $configDir) {
+                                Remove-Item -LiteralPath $configDir -Recurse -Force
+                            }
+                        }
                     '''
-                    bat 'docker push %IMAGE%:%BUILD_NUMBER%'
-                }
-            }
-            post {
-                always {
-                    bat 'docker logout'
                 }
             }
         }
