@@ -1,6 +1,5 @@
 package prueba.despliegue.repository;
 
-import org.springframework.stereotype.Repository;
 import prueba.despliegue.model.Producto;
 
 import java.util.ArrayList;
@@ -9,7 +8,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Repository
 public class InMemoryProductoRepository implements ProductoRepository {
     private final ConcurrentHashMap<Long, Producto> productos = new ConcurrentHashMap<>();
     private final AtomicLong secuencia = new AtomicLong();

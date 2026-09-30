@@ -1,4 +1,14 @@
 spring:
   application:
     name: despliegue
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  sql:
+    init:
+      mode: always
 
+app:
+  demo-data:
+    enabled: false

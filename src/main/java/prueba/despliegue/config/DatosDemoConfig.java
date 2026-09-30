@@ -1,6 +1,7 @@
 package prueba.despliegue.config;
 
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import prueba.despliegue.dto.ProductoRequest;
@@ -9,10 +10,14 @@ import prueba.despliegue.service.ProductoService;
 import java.math.BigDecimal;
 
 @Configuration
+@ConditionalOnProperty(name = "app.demo-data.enabled", havingValue = "true")
 public class DatosDemoConfig {
     @Bean
     ApplicationRunner cargarProductosDemo(ProductoService service) {
         return args -> {
+            if (!service.listar(null).isEmpty()) {
+                return;
+            }
             service.crear(new ProductoRequest("LAP-001", "Laptop Pro 14", "Tecnología", new BigDecimal("3499.00"), 8));
             service.crear(new ProductoRequest("MON-002", "Monitor 27 pulgadas", "Tecnología", new BigDecimal("899.90"), 3));
             service.crear(new ProductoRequest("SIL-003", "Silla ergonómica", "Oficina", new BigDecimal("649.00"), 12));
